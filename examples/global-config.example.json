@@ -1,0 +1,7 @@
+{
+  "projects": [
+    { "name": "my-app", "path": "~/code/my-app" },
+    { "name": "notes-vault", "path": "~/notes" },
+    { "name": "side-project", "path": "~/code/side-project" }
+  ]
+}
