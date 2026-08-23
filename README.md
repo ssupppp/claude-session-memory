@@ -4,6 +4,11 @@ One Claude Code skill — `session-memory` — that gives a project persistent,
 disciplined memory across work sessions. Two modes, one skill: START
 (read-only briefing) and END (cascade doc updates).
 
+For a visual walkthrough of the architecture (the problem it solves, the
+file layout, how both modes run, and the design decisions), see
+[`docs/overview.html`](docs/overview.html) — open it in a browser, or view
+via [raw.githack.com](https://raw.githack.com/ssupppp/claude-session-memory/master/docs/overview.html).
+
 ## What this actually does
 
 Not "AI memory." Two things, both about **efficiency**, not novelty:

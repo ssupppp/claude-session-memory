@@ -1,0 +1,628 @@
+<title>Session Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #EDF2F6;
+    --paper-raised: #FFFFFF;
+    --ink: #16232F;
+    --ink-muted: #4C6072;
+    --ink-faint: #7C8FA0;
+    --line: #C4D2DE;
+    --line-strong: #97ADBF;
+    --accent: #C4622D;
+    --accent-soft: #E7DAD1;
+    --teal: #2F7A70;
+    --teal-soft: #D9E7E4;
+    --font-display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", "Consolas", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E2436;
+      --paper-raised: #163049;
+      --ink: #E7EEF3;
+      --ink-muted: #9FB6C6;
+      --ink-faint: #6C8598;
+      --line: #2C4A61;
+      --line-strong: #3E6580;
+      --accent: #E8925A;
+      --accent-soft: #3C2A20;
+      --teal: #6FC2B4;
+      --teal-soft: #17332E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E2436;
+    --paper-raised: #163049;
+    --ink: #E7EEF3;
+    --ink-muted: #9FB6C6;
+    --ink-faint: #6C8598;
+    --line: #2C4A61;
+    --line-strong: #3E6580;
+    --accent: #E8925A;
+    --accent-soft: #3C2A20;
+    --teal: #6FC2B4;
+    --teal-soft: #17332E;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sheet-bg {
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    opacity: 0.5;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  /* ---- Title block ---- */
+  .titleblock {
+    border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+    padding: 28px 28px 20px;
+    position: relative;
+    margin-bottom: 56px;
+  }
+  .corner { position: absolute; width: 14px; height: 14px; border: 1.5px solid var(--ink-faint); }
+  .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    max-width: 56ch;
+    margin: 0 0 22px;
+    text-wrap: balance;
+  }
+  .metarow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 22px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+  .metarow b { color: var(--ink-muted); font-weight: 500; }
+
+  /* ---- Sheet index ---- */
+  nav.index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 4px;
+    margin: -28px 0 48px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+  nav.index a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+  }
+  nav.index a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ---- Sheet sections ---- */
+  section.sheet {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+  .sheet-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .sheet-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.55rem;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sheet-rule {
+    height: 1px;
+    background: var(--line);
+    margin: 14px 0 26px;
+  }
+
+  section.sheet > p, section.sheet > ul, section.sheet > ol {
+    max-width: 66ch;
+  }
+  p { margin: 0 0 16px; }
+  ul, ol { padding-left: 22px; margin: 0 0 16px; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    max-width: 62ch;
+    padding: 16px 20px;
+    border-left: 2px solid var(--accent);
+    background: var(--accent-soft);
+    font-size: 0.98rem;
+    color: var(--ink);
+    margin: 22px 0;
+  }
+  .callout b { color: var(--accent); font-weight: 600; }
+
+  /* ---- Diagram frame ---- */
+  figure.diagram {
+    margin: 0 0 12px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+    padding: 22px 18px 14px;
+    position: relative;
+  }
+  figure.diagram .diagram-scroll {
+    overflow-x: auto;
+  }
+  figure.diagram svg { display: block; width: 100%; height: auto; min-width: 560px; }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    margin-top: 12px;
+  }
+
+  .diag-label { font-family: var(--font-mono); font-size: 11.5px; }
+  .diag-title { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
+
+  /* ---- Details: table + code ---- */
+  table.docs {
+    width: 100%;
+    max-width: 700px;
+    border-collapse: collapse;
+    font-size: 0.93rem;
+    margin: 18px 0 28px;
+  }
+  table.docs th, table.docs td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.docs th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  table.docs td.path { font-family: var(--font-mono); font-size: 0.86rem; color: var(--teal); white-space: nowrap; }
+
+  pre.code {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 14px 16px;
+    overflow-x: auto;
+    max-width: 640px;
+    line-height: 1.55;
+    color: var(--ink-muted);
+    margin: 0 0 24px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 760px;
+    margin: 8px 0 28px;
+  }
+  .detail-card {
+    border: 1px solid var(--line);
+    padding: 16px 18px;
+    background: var(--paper-raised);
+  }
+  .detail-card h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin: 0 0 8px;
+  }
+  .detail-card p { font-size: 0.92rem; margin: 0; }
+
+  /* ---- Naming section ---- */
+  .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    background: var(--teal-soft);
+    margin-bottom: 18px;
+  }
+  .verdict::before { content: "✓"; font-weight: 700; }
+
+  table.names {
+    width: 100%;
+    max-width: 700px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 10px 0 8px;
+  }
+  table.names th, table.names td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.names th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  table.names td.name { font-family: var(--font-mono); }
+  table.names tr.current td.name { color: var(--accent); font-weight: 600; }
+
+  footer {
+    max-width: 700px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 32px 16px 72px; }
+    .titleblock { padding: 20px 18px 16px; }
+  }
+</style>
+
+<div class="sheet-bg" style="position:fixed; inset:0; z-index:-1;" aria-hidden="true"></div>
+
+<div class="page">
+
+  <div class="titleblock fade-in">
+    <span class="corner tl" aria-hidden="true"></span>
+    <span class="corner tr" aria-hidden="true"></span>
+    <span class="corner bl" aria-hidden="true"></span>
+    <span class="corner br" aria-hidden="true"></span>
+    <p class="eyebrow">Skill architecture — as built</p>
+    <h1>Session Memory</h1>
+    <p class="subtitle">How one Claude Code skill keeps half a dozen active projects from either re-explaining themselves every session, or dumping everything into one file that never stops growing.</p>
+    <div class="metarow">
+      <span><b>Rev</b> 1.0</span>
+      <span><b>Status</b> Published</span>
+      <span><b>Date</b> 2026-08-23</span>
+      <span><b>Repo</b> github.com/ssupppp/claude-session-memory</span>
+    </div>
+  </div>
+
+  <nav class="index" aria-label="Sheet index">
+    <a href="#sheet1">01 · The problem</a>
+    <a href="#sheet2">02 · Layout</a>
+    <a href="#sheet3">03 · How it runs</a>
+    <a href="#sheet4">04 · The details</a>
+    <a href="#sheet5">05 · The name</a>
+  </nav>
+
+  <!-- SHEET 1 -->
+  <section class="sheet" id="sheet1">
+    <div class="sheet-head">
+      <span class="sheet-num">SHEET 01 / 05</span>
+      <h2>The problem this solves for you</h2>
+    </div>
+    <div class="sheet-rule"></div>
+
+    <p>You run six to ten active codebases at once — a mix of work and personal projects, each with its own frontend, backend, or pipeline. Every one of them has its own history, its own open threads, its own half-finished decisions.</p>
+
+    <p>Without something carrying that forward, there are only two bad defaults. Either you re-explain the state of a project at the top of every session — real time, spent every day. Or everything lives in one global memory file that keeps growing and gets loaded in full no matter which project you're actually touching — real tokens, spent on context that has nothing to do with today's work.</p>
+
+    <div class="callout">
+      <b>The mental model:</b> a filing clerk who only opens the drawer for the project you're standing in front of — never the whole cabinet, and never nothing at all.
+    </div>
+
+    <p>That's the whole premise. Everything below is the mechanism that makes it true.</p>
+  </section>
+
+  <!-- SHEET 2 -->
+  <section class="sheet" id="sheet2">
+    <div class="sheet-head">
+      <span class="sheet-num">SHEET 02 / 05</span>
+      <h2>Layout: one skill, many drawers</h2>
+    </div>
+    <div class="sheet-rule"></div>
+
+    <p>The skill itself is installed once. Every project it touches gets its own small set of files — nothing shared by default. A thin, optional index sits outside all of them, only written to if you explicitly ask for it.</p>
+
+    <figure class="diagram">
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 860 400" role="img" aria-label="The session-memory skill sits above every project. Project A, a git repository, and Project B, a plain folder with no git, each hold their own MEMORY.md, ERRORS.md, BACKLOG.md, and a .last-active timestamp file, all under a .claude/session-memory folder inside that project. Both projects optionally connect, via dashed opt-in lines, to one shared file outside any project: a global config and a global MEMORY.md under the home directory.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+
+          <!-- skill node -->
+          <rect x="330" y="16" width="200" height="46" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+          <text x="430" y="36" text-anchor="middle" class="diag-title" fill="currentColor">session-memory</text>
+          <text x="430" y="52" text-anchor="middle" class="diag-label" fill="currentColor" opacity="0.65">installed once, .claude/skills/</text>
+
+          <!-- arrows down to project boxes -->
+          <line x1="380" y1="62" x2="180" y2="118" stroke="currentColor" stroke-width="1.25" marker-end="url(#arrow)"></line>
+          <line x1="480" y1="62" x2="680" y2="118" stroke="currentColor" stroke-width="1.25" marker-end="url(#arrow)"></line>
+          <text x="255" y="90" text-anchor="middle" class="diag-label" fill="currentColor" opacity="0.75">reads / writes</text>
+          <text x="605" y="90" text-anchor="middle" class="diag-label" fill="currentColor" opacity="0.75">reads / writes</text>
+
+          <!-- Project A box -->
+          <rect x="40" y="120" width="280" height="168" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+          <text x="56" y="144" class="diag-title" fill="currentColor">Project A</text>
+          <text x="56" y="160" class="diag-label" fill="currentColor" opacity="0.65">git repository</text>
+          <line x1="56" y1="170" x2="304" y2="170" stroke="currentColor" stroke-width="0.75" opacity="0.4"></line>
+
+          <text x="56" y="192" class="diag-label" fill="var(--teal)">.claude/session-memory/</text>
+          <text x="70" y="210" class="diag-label" fill="currentColor">MEMORY.md</text>
+          <text x="70" y="228" class="diag-label" fill="currentColor">ERRORS.md</text>
+          <text x="70" y="246" class="diag-label" fill="currentColor">BACKLOG.md</text>
+          <text x="70" y="264" class="diag-label" fill="currentColor" opacity="0.8">.last-active</text>
+
+          <!-- Project B box -->
+          <rect x="540" y="120" width="280" height="168" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+          <text x="556" y="144" class="diag-title" fill="currentColor">Project B</text>
+          <text x="556" y="160" class="diag-label" fill="currentColor" opacity="0.65">plain folder, no git</text>
+          <line x1="556" y1="170" x2="804" y2="170" stroke="currentColor" stroke-width="0.75" opacity="0.4"></line>
+
+          <text x="556" y="192" class="diag-label" fill="var(--teal)">.claude/session-memory/</text>
+          <text x="570" y="210" class="diag-label" fill="currentColor">MEMORY.md</text>
+          <text x="570" y="228" class="diag-label" fill="currentColor">ERRORS.md</text>
+          <text x="570" y="246" class="diag-label" fill="currentColor">BACKLOG.md</text>
+          <text x="570" y="264" class="diag-label" fill="currentColor" opacity="0.8">.last-active</text>
+
+          <!-- global box -->
+          <rect x="280" y="330" width="300" height="56" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"></rect>
+          <text x="430" y="352" text-anchor="middle" class="diag-title" fill="var(--accent)">~/.claude/session-memory/</text>
+          <text x="430" y="369" text-anchor="middle" class="diag-label" fill="var(--accent)" opacity="0.85">config.json + global MEMORY.md</text>
+
+          <!-- dashed opt-in lines -->
+          <line x1="180" y1="288" x2="360" y2="330" stroke="var(--accent)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#arrow)"></line>
+          <line x1="680" y1="288" x2="500" y2="330" stroke="var(--accent)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#arrow)"></line>
+          <text x="200" y="315" text-anchor="middle" class="diag-label" fill="var(--accent)">opt-in</text>
+          <text x="655" y="315" text-anchor="middle" class="diag-label" fill="var(--accent)">opt-in</text>
+        </svg>
+      </div>
+      <figcaption>Fig. 1 — one skill, many project drawers, one thin optional index. Solid lines are always live; dashed copper lines only exist if you turn the shared log on.</figcaption>
+    </figure>
+  </section>
+
+  <!-- SHEET 3 -->
+  <section class="sheet" id="sheet3">
+    <div class="sheet-head">
+      <span class="sheet-num">SHEET 03 / 05</span>
+      <h2>How it runs</h2>
+    </div>
+    <div class="sheet-rule"></div>
+
+    <p>Two modes, two very different postures. Starting a session only ever reads. Ending one is the only place anything gets written — and it writes selectively, not everything every time.</p>
+
+    <figure class="diagram">
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 860 300" role="img" aria-label="Start-session flow, read only, colored teal: you say start session, the skill finds the project root and checks it is not an unrelated parent repository, reads MEMORY, ERRORS, and BACKLOG with tail and grep only, and shows you a briefing. End-session flow, writes, colored copper: you say session end, the skill finds and guards the project root, builds a summary of the conversation, always writes MEMORY.md and a last-active marker, writes ERRORS.md only if something genuinely failed, and writes the shared global log only if you opted in.">
+          <defs>
+            <marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"></path>
+            </marker>
+            <marker id="arrowCopper" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
+            </marker>
+          </defs>
+
+          <!-- START lane -->
+          <text x="20" y="26" class="diag-title" fill="var(--teal)">START — read only</text>
+
+          <g font-family="var(--font-mono)">
+            <rect x="20" y="42" width="150" height="44" fill="none" stroke="var(--teal)" stroke-width="1.25"></rect>
+            <text x="95" y="68" text-anchor="middle" class="diag-label" fill="var(--teal)">"start session"</text>
+
+            <line x1="170" y1="64" x2="216" y2="64" stroke="var(--teal)" stroke-width="1.25" marker-end="url(#arrowTeal)"></line>
+
+            <rect x="218" y="42" width="180" height="44" fill="none" stroke="var(--teal)" stroke-width="1.25"></rect>
+            <text x="308" y="60" text-anchor="middle" class="diag-label" fill="var(--teal)">find + guard root</text>
+            <text x="308" y="74" text-anchor="middle" class="diag-label" fill="var(--teal)" opacity="0.7">(not a parent repo)</text>
+
+            <line x1="398" y1="64" x2="444" y2="64" stroke="var(--teal)" stroke-width="1.25" marker-end="url(#arrowTeal)"></line>
+
+            <rect x="446" y="42" width="200" height="44" fill="none" stroke="var(--teal)" stroke-width="1.25"></rect>
+            <text x="546" y="60" text-anchor="middle" class="diag-label" fill="var(--teal)">tail MEMORY / ERRORS</text>
+            <text x="546" y="74" text-anchor="middle" class="diag-label" fill="var(--teal)" opacity="0.7">grep BACKLOG</text>
+
+            <line x1="646" y1="64" x2="692" y2="64" stroke="var(--teal)" stroke-width="1.25" marker-end="url(#arrowTeal)"></line>
+
+            <rect x="694" y="42" width="146" height="44" fill="none" stroke="var(--teal)" stroke-width="1.5"></rect>
+            <text x="767" y="68" text-anchor="middle" class="diag-label" fill="var(--teal)">briefing</text>
+          </g>
+
+          <line x1="20" y1="110" x2="840" y2="110" stroke="currentColor" stroke-width="0.75" stroke-dasharray="2 4" opacity="0.35"></line>
+
+          <!-- END lane -->
+          <text x="20" y="146" class="diag-title" fill="var(--accent)">END — writes</text>
+
+          <g font-family="var(--font-mono)">
+            <rect x="20" y="162" width="130" height="44" fill="none" stroke="var(--accent)" stroke-width="1.25"></rect>
+            <text x="85" y="188" text-anchor="middle" class="diag-label" fill="var(--accent)">"session end"</text>
+
+            <line x1="150" y1="184" x2="196" y2="184" stroke="var(--accent)" stroke-width="1.25" marker-end="url(#arrowCopper)"></line>
+
+            <rect x="198" y="162" width="150" height="44" fill="none" stroke="var(--accent)" stroke-width="1.25"></rect>
+            <text x="273" y="180" text-anchor="middle" class="diag-label" fill="var(--accent)">find + guard root</text>
+            <text x="273" y="194" text-anchor="middle" class="diag-label" fill="var(--accent)" opacity="0.7">build summary</text>
+
+            <line x1="348" y1="184" x2="394" y2="184" stroke="var(--accent)" stroke-width="1.25" marker-end="url(#arrowCopper)"></line>
+
+            <rect x="396" y="162" width="150" height="44" fill="none" stroke="var(--accent)" stroke-width="1.5"></rect>
+            <text x="471" y="180" text-anchor="middle" class="diag-label" fill="var(--accent)">MEMORY.md</text>
+            <text x="471" y="194" text-anchor="middle" class="diag-label" fill="var(--accent)">.last-active</text>
+            <text x="500" y="220" text-anchor="middle" class="diag-label" fill="var(--accent)" opacity="0.7">always</text>
+
+            <line x1="546" y1="184" x2="592" y2="184" stroke="var(--accent)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#arrowCopper)"></line>
+
+            <rect x="594" y="162" width="120" height="44" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3"></rect>
+            <text x="654" y="184" text-anchor="middle" class="diag-label" fill="var(--accent)">ERRORS.md</text>
+            <text x="654" y="222" text-anchor="middle" class="diag-label" fill="var(--accent)" opacity="0.7">if something failed</text>
+
+            <line x1="714" y1="184" x2="760" y2="184" stroke="var(--accent)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#arrowCopper)"></line>
+
+            <rect x="762" y="162" width="78" height="44" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3"></rect>
+            <text x="801" y="180" text-anchor="middle" class="diag-label" fill="var(--accent)">global</text>
+            <text x="801" y="194" text-anchor="middle" class="diag-label" fill="var(--accent)">log</text>
+            <text x="801" y="222" text-anchor="middle" class="diag-label" fill="var(--accent)" opacity="0.7">if opted in</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Fig. 2 — teal is read-only, copper is a write. Dashed copper boxes only fire conditionally, not on every run.</figcaption>
+    </figure>
+  </section>
+
+  <!-- SHEET 4 -->
+  <section class="sheet" id="sheet4">
+    <div class="sheet-head">
+      <span class="sheet-num">SHEET 04 / 05</span>
+      <h2>The details</h2>
+    </div>
+    <div class="sheet-rule"></div>
+
+    <p>One <code>SKILL.md</code>, mode picked first, then either the START or END path below runs — never both.</p>
+
+    <table class="docs">
+      <thead>
+        <tr><th>File</th><th>Created by</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="path">MEMORY.md</td><td>auto, first END run</td><td>Per-project session history</td></tr>
+        <tr><td class="path">ERRORS.md</td><td>only when something genuinely failed</td><td>Root causes, so you don't re-debug the same thing</td></tr>
+        <tr><td class="path">BACKLOG.md</td><td>never auto-created</td><td>Only touched if you already keep one</td></tr>
+        <tr><td class="path">.claude/session-memory/.last-active</td><td>every END run</td><td>Recency signal — works even with no git history</td></tr>
+        <tr><td class="path">~/.claude/session-memory/MEMORY.md</td><td>only if you opt in, once</td><td>One line per session, across every project</td></tr>
+      </tbody>
+    </table>
+
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h3>Config, per project</h3>
+        <p>Optional <code>.claude/session-memory.json</code> overrides doc filenames and turns on the global log. Absent = sane defaults, zero setup.</p>
+      </div>
+      <div class="detail-card">
+        <h3>Multi-project scan</h3>
+        <p>If you've registered several projects, starting with no target sorts them by the <code>.last-active</code> marker — falls back to last git commit, works for non-git folders too.</p>
+      </div>
+      <div class="detail-card">
+        <h3>The bug that got caught</h3>
+        <p><code>git rev-parse --show-toplevel</code> walks upward for a <code>.git</code> — a casual subfolder inside an unrelated parent repo could silently write into the wrong place. Fixed: both modes check the resolved root against your home directory before trusting it.</p>
+      </div>
+      <div class="detail-card">
+        <h3>Selective, not exhaustive</h3>
+        <p><code>ERRORS.md</code> only gets an entry when something actually broke non-obviously — never a "nothing to report" line. That's what keeps it worth reading.</p>
+      </div>
+    </div>
+
+    <pre class="code">.claude/session-memory.json
+{
+  "globalMemory": "~/.claude/session-memory/MEMORY.md",
+  "docs": { "memory": "MEMORY.md", "errors": "ERRORS.md", "backlog": "BACKLOG.md" }
+}</pre>
+  </section>
+
+  <!-- SHEET 5 -->
+  <section class="sheet" id="sheet5">
+    <div class="sheet-head">
+      <span class="sheet-num">SHEET 05 / 05</span>
+      <h2>Is "session-memory" the right name?</h2>
+    </div>
+    <div class="sheet-rule"></div>
+
+    <div class="verdict">Keep it — reposition, don't rename</div>
+
+    <p>The command reads naturally: you say "start session" or "session end" and it just does the thing you said. That match between what you'd naturally type and what the skill is called is worth more than a cleverer name — renaming it trades a small differentiation gain for a real cost in muscle memory and discoverability (people search "claude code session memory," not a coined term).</p>
+
+    <p>The honest risk isn't the name — it's the category. "Memory" skills are common now, and a generic name in a crowded shelf blends in. The fix for that is the <em>description and pitch</em>, not the command: lead publicly with what actually makes this one different — routing to the right doc instead of one dump, and working for non-git folders — rather than the word "memory" itself.</p>
+
+    <p>If you still want to weigh alternatives, here's how they trade off:</p>
+
+    <table class="names">
+      <thead><tr><th>Name</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr class="current"><td class="name">session-memory</td><td>Matches natural phrasing exactly. Generic category term — differentiation has to come from the pitch, not the name.</td></tr>
+        <tr><td class="name">session-cascade</td><td>Names the actual mechanism (routed writes across docs). Less intuitive to type or search for.</td></tr>
+        <tr><td class="name">continuity</td><td>Evocative, short. Doesn't hint that it's session-scoped — reads more like a product name than a command.</td></tr>
+        <tr><td class="name">docs-router</td><td>Precise about what it does. Sounds infrastructural, undersells the briefing side entirely.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    session-memory · rev 1.0 · a Claude Code skill · MIT licensed
+  </footer>
+
+</div>
